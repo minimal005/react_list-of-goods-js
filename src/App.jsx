@@ -37,99 +37,73 @@ function styleClass(btn) {
   }
 }
 
-export const App = () => {
-  const [visibleGoods, setVisibleGoods] = useState(goodsFromServer);
-  const [style, setStyle] = useState({
-    SORT_ALPHABET: false,
-    SORT_LENGTH: false,
-    REVERSE: false,
-  });
+function sortGoods(goods, { typeField, isReversed }) {
+  const changedGoods = [...goods];
 
-  function changeList(btn) {
-    const changeGoods = [...visibleGoods];
+  if (typeField) {
+    if (typeField === SORT_ALPHABET) {
+      if (isReversed) {
+        return changedGoods.sort((a, b) => a.localeCompare(b)).reverse();
+      }
 
-    switch (btn) {
-      case SORT_ALPHABET:
-        if (style.REVERSE) {
-          return setVisibleGoods(
-            changeGoods.sort((a, b) => a.localeCompare(b)).reverse(),
-          );
-        }
+      return changedGoods.sort((a, b) => a.localeCompare(b));
+    }
 
-        return setVisibleGoods(changeGoods.sort((a, b) => a.localeCompare(b)));
+    if (typeField === SORT_LENGTH) {
+      if (isReversed) return changedGoods.sort((a, b) => b.length - a.length);
 
-      case SORT_LENGTH:
-        if (style.REVERSE) {
-          return setVisibleGoods(
-            changeGoods.sort((a, b) => b.length - a.length),
-          );
-        }
-
-        return setVisibleGoods(changeGoods.sort((a, b) => a.length - b.length));
-      case REVERSE:
-        return setVisibleGoods(changeGoods.reverse());
-      case RESET:
-        return setVisibleGoods(goodsFromServer);
-      default:
-        return setVisibleGoods(goodsFromServer);
+      return changedGoods.sort((a, b) => b.length - a.length).reverse();
     }
   }
 
-  const reset =
-    style.SORT_ALPHABET === false &&
-    style.SORT_LENGTH === false &&
-    style.REVERSE === false;
+  if (!typeField && isReversed) {
+    changedGoods.reverse();
+  }
+
+  return changedGoods;
+}
+
+export const App = () => {
+  const [sort, setSort] = useState({ typeField: '', isReversed: false });
+  const visibleGoods = sortGoods(goodsFromServer, sort);
 
   return (
     <div className="section content">
       <div className="buttons">
         <button
-          onClick={() => {
-            changeList(SORT_ALPHABET);
-            setStyle(prev => ({
-              ...prev,
-              SORT_LENGTH: false,
-              SORT_ALPHABET: true,
-            }));
-          }}
+          onClick={() =>
+            setSort(prev => ({ ...prev, typeField: SORT_ALPHABET }))
+          }
           type="button"
           className={clsx(
             'button',
             styleClass(SORT_ALPHABET),
-            !style.SORT_ALPHABET && 'is-light',
+            sort.typeField !== SORT_ALPHABET && 'is-light',
           )}
         >
           Sort alphabetically
         </button>
-
         <button
           onClick={() => {
-            changeList(SORT_LENGTH);
-            setStyle(prev => ({
-              ...prev,
-              SORT_LENGTH: true,
-              SORT_ALPHABET: false,
-            }));
+            setSort(prev => ({ ...prev, typeField: SORT_LENGTH }));
           }}
           type="button"
           className={clsx(
             'button',
             styleClass(SORT_LENGTH),
-            !style.SORT_LENGTH && 'is-light',
+            sort.typeField !== SORT_LENGTH && 'is-light',
           )}
         >
           Sort by length
         </button>
-
         <button
           onClick={() => {
-            changeList(REVERSE);
-            setStyle(prev => {
-              const reverse = prev.REVERSE !== true;
+            setSort(prev => {
+              const reverse = sort.isReversed !== true;
 
               return {
                 ...prev,
-                REVERSE: reverse,
+                isReversed: reverse,
               };
             });
           }}
@@ -137,26 +111,15 @@ export const App = () => {
           className={clsx(
             'button',
             styleClass(REVERSE),
-            !style.REVERSE && 'is-light',
+            !sort.isReversed && 'is-light',
           )}
         >
           Reverse
         </button>
-
-        {!reset && (
+        {(sort.typeField || sort.isReversed) && (
           <button
             onClick={() => {
-              changeList(RESET);
-              // const reset =
-              //   style.SORT_ALPHABET === false &&
-              //   style.SORT_LENGTH === false &&
-              //   style.REVERSE === false;
-
-              setStyle({
-                SORT_ALPHABET: false,
-                SORT_LENGTH: false,
-                REVERSE: false,
-              });
+              setSort({ typeField: '', isReversed: false });
             }}
             type="button"
             className={clsx('button', styleClass(RESET), 'is-light')}
