@@ -40,23 +40,20 @@ function styleClass(btn) {
 function sortGoods(goods, { typeField, isReversed }) {
   const changedGoods = [...goods];
 
-  if (typeField) {
-    if (typeField === SORT_ALPHABET) {
-      if (isReversed) {
-        return changedGoods.sort((a, b) => a.localeCompare(b)).reverse();
-      }
+  switch (typeField) {
+    case SORT_ALPHABET:
+      changedGoods.sort((a, b) => a.localeCompare(b));
+      break;
 
-      return changedGoods.sort((a, b) => a.localeCompare(b));
-    }
+    case SORT_LENGTH:
+      changedGoods.sort((a, b) => a.length - b.length);
+      break;
 
-    if (typeField === SORT_LENGTH) {
-      if (isReversed) return changedGoods.sort((a, b) => b.length - a.length);
-
-      return changedGoods.sort((a, b) => b.length - a.length).reverse();
-    }
+    default:
+      break;
   }
 
-  if (!typeField && isReversed) {
+  if (isReversed) {
     changedGoods.reverse();
   }
 
@@ -98,14 +95,10 @@ export const App = () => {
         </button>
         <button
           onClick={() => {
-            setSort(prev => {
-              const reverse = sort.isReversed !== true;
-
-              return {
-                ...prev,
-                isReversed: reverse,
-              };
-            });
+            setSort(prev => ({
+              ...prev,
+              isReversed: !prev.isReversed,
+            }));
           }}
           type="button"
           className={clsx(
